@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import UpdateView, ListView
 from django.utils import timezone
+from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 
 from .forms import NewTopicForm, PostForm
@@ -13,7 +14,7 @@ class TopicListView(ListView):
     model = Topic
     context_object_name = 'topics'
     template_name = 'topics.html'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_context_data(self, **kwargs):
         kwargs['board'] = self.board
@@ -35,7 +36,7 @@ def board_topics(request, pk):
     queryset = board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
     page = request.GET.get('page', 1)
 
-    paginator = Paginator(queryset, 20)
+    paginator = Paginator(queryset, 10)
 
     try:
         topics = paginator.page(page)
@@ -127,15 +128,15 @@ class PostListView(ListView):
     model = Post
     context_object_name = 'posts'
     template_name = 'topic_posts.html'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_context_data(self, **kwargs):
 
-        session_key = 'viewed_topic_{}'.format(self.topic.pk)  # <-- here
+        session_key = 'viewed_topic_{}'.format(self.topic.pk)
         if not self.request.session.get(session_key, False):
             self.topic.views += 1
             self.topic.save()
-            self.request.session[session_key] = True           # <-- until here
+            self.request.session[session_key] = True
 
         kwargs['topic'] = self.topic
         return super().get_context_data(**kwargs)

@@ -1,11 +1,17 @@
-from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.models import User
 from django.contrib.auth import views as auth_views
-from django.urls import resolve, reverse
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import User
+from django.core import mail
+from django.urls import reverse, resolve
 from django.test import TestCase
-
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.forms import PasswordChangeForm
 
 class PasswordChangeTests(TestCase):
+
     def setUp(self):
         username = 'john'
         password = 'secret123'
@@ -35,7 +41,6 @@ class PasswordChangeTests(TestCase):
         self.assertContains(self.response, '<input', 4)
         self.assertContains(self.response, 'type="password"', 3)
 
-
 class LoginRequiredPasswordChangeTests(TestCase):
     def test_redirection(self):
         url = reverse('password_change')
@@ -54,7 +59,6 @@ class PasswordChangeTestCase(TestCase):
         self.url = reverse('password_change')
         self.client.login(username='john', password='old_password')
         self.response = self.client.post(self.url, data)
-
 
 class SuccessfulPasswordChangeTests(PasswordChangeTestCase):
     def setUp(self):
@@ -86,7 +90,6 @@ class SuccessfulPasswordChangeTests(PasswordChangeTestCase):
         response = self.client.get(reverse('home'))
         user = response.context.get('user')
         self.assertTrue(user.is_authenticated)
-
 
 class InvalidPasswordChangeTests(PasswordChangeTestCase):
     def test_status_code(self):
